@@ -2,12 +2,16 @@
   <div class="container">
     <h2>Consultar Estudiante por ID</h2>
 
+    <!-- Mensajes de Alerta -->
+    <div v-if="mensajeExito" class="alert alert-success">
+      {{ mensajeExito }}
+    </div>
+    <div v-if="mensajeError" class="alert alert-danger">
+      {{ mensajeError }}
+    </div>
+
     <div class="section">
-      <input
-        v-model.number="id"
-        type="number"
-        placeholder="Ingrese el ID del estudiante"
-      />
+      <input v-model.number="id" type="number" placeholder="Ingrese el ID del estudiante" />
       <button @click="consultarPorID" class="btn-primary">Consultar</button>
     </div>
 
@@ -44,10 +48,14 @@
             <td>
               <ul>
                 <li v-for="h in estudiante.hijos" :key="h.id">
-                  {{ h.nombre }} ({{ h.edad || "años" }})
+                  {{ h.nombre }} {{ h.apellido }}
                 </li>
               </ul>
             </td>
+          </tr>
+          <tr v-else>
+            <th>Hijos</th>
+            <td>No tiene hijos registrados</td>
           </tr>
         </tbody>
       </table>
@@ -64,27 +72,53 @@ export default {
     return {
       id: null,
       estudiante: {},
+      mensajeExito: "",
+      mensajeError: "",
     };
   },
   methods: {
+    mostrarExito(msg) {
+      this.mensajeExito = msg;
+      this.mensajeError = "";
+      setTimeout(() => {
+        this.mensajeExito = "";
+      }, 5000);
+    },
+    mostrarError(msg) {
+      this.mensajeError = msg;
+      this.mensajeExito = "";
+      setTimeout(() => {
+        this.mensajeError = "";
+      }, 5000);
+    },
     async consultarPorID() {
       if (!this.id) {
-        console.warn("Por favor ingresa un ID");
+        this.mostrarError("Por favor ingresa un ID");
+        // Limpiar estado
+        this.estudiante = {};
         return;
       }
       try {
         const datos = await consultarPorIDFachada(this.id);
         if (!datos || !datos.id) {
-          console.warn("Estudiante no encontrado");
+          this.mostrarError("Estudiante no encontrado");
+          this.estudiante = {};
           return;
         }
-        // Traer hijos
-        datos.hijos = await this.consultarHijos(datos.id);
+
+        // CORRECCIÓN: Los hijos ya vienen en 'datos' si la API los retorna completos.
+        // Si no, usamos la lógica de fetch adicional.
+        if (!datos.hijos) {
+          datos.hijos = await this.consultarHijos(datos.id);
+        }
+
         this.estudiante = datos;
+        this.mostrarExito("Estudiante encontrado");
         console.log("Por ID:", datos);
       } catch (error) {
         console.error(error);
-        console.warn("Error al consultar estudiante");
+        this.mostrarError("Error al consultar estudiante");
+        this.estudiante = {};
       }
     },
 
@@ -113,6 +147,26 @@ export default {
 </script>
 
 <style scoped>
+/* Estilos para Alertas */
+.alert {
+  padding: 15px;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
+.alert-success {
+  color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+}
+
+.alert-danger {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+}
+
 .container {
   max-width: 800px;
   margin: auto;

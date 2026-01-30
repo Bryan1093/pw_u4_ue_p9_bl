@@ -2,6 +2,14 @@
   <div class="container">
     <h2>Eliminar Estudiante</h2>
 
+    <!-- Mensajes de Alerta -->
+    <div v-if="mensajeExito" class="alert alert-success">
+      {{ mensajeExito }}
+    </div>
+    <div v-if="mensajeError" class="alert alert-danger">
+      {{ mensajeError }}
+    </div>
+
     <div class="warning-box">
       <p>
         <strong>Advertencia:</strong> Esta acción no se puede deshacer. Eliminar
@@ -12,11 +20,7 @@
     <div class="section">
       <h3>Buscar Estudiante</h3>
       <div class="search-group">
-        <input
-          v-model.number="id"
-          type="number"
-          placeholder="ID del estudiante"
-        />
+        <input v-model.number="id" type="number" placeholder="ID del estudiante" />
         <button @click="buscarEstudiante" class="btn-info">Buscar</button>
       </div>
     </div>
@@ -75,49 +79,64 @@ export default {
     return {
       id: null,
       estudiante: {},
+      mensajeExito: "",
+      mensajeError: "",
     };
   },
   methods: {
+    mostrarExito(msg) {
+      this.mensajeExito = msg;
+      this.mensajeError = "";
+      setTimeout(() => {
+        this.mensajeExito = "";
+      }, 5000);
+    },
+    mostrarError(msg) {
+      this.mensajeError = msg;
+      this.mensajeExito = "";
+      setTimeout(() => {
+        this.mensajeError = "";
+      }, 5000);
+    },
     async buscarEstudiante() {
       if (!this.id) {
-        console.warn("Por favor ingresa un ID");
+        this.mostrarError("Por favor ingresa un ID");
         return;
       }
       try {
         const datos = await consultarPorIDFachada(this.id);
         if (!datos || !datos.id) {
-          console.warn("Estudiante no encontrado");
+          this.mostrarError("Estudiante no encontrado");
           return;
         }
         this.estudiante = datos;
         console.log("Estudiante encontrado:", datos);
       } catch (error) {
         console.error(error);
-        console.warn("Error al buscar estudiante");
+        this.mostrarError("Error al buscar estudiante");
       }
     },
 
     async eliminar() {
       if (!this.id) {
-        console.warn("Por favor selecciona un estudiante para eliminar");
+        this.mostrarError("Por favor selecciona un estudiante para eliminar");
         return;
       }
 
-      // Ya existe una confirmación visual en la vista (botón "Sí, Eliminar"),
-      // así que eliminamos el popup nativo confirm(). Procedemos con la eliminación.
       try {
         await eliminarFachada(this.id);
-        console.info("Estudiante eliminado con éxito");
+        this.mostrarExito("Estudiante eliminado con éxito");
         this.limpiarFormulario();
       } catch (error) {
         console.error(error);
-        console.warn("Error al eliminar estudiante");
+        this.mostrarError("Error al eliminar estudiante");
       }
     },
 
     limpiarFormulario() {
       this.id = null;
       this.estudiante = {};
+      // No limpiamos mensajes aquí para que el mensaje de éxito persista un momento
     },
 
     formatFecha(fecha) {
@@ -129,6 +148,26 @@ export default {
 </script>
 
 <style scoped>
+/* Estilos para Alertas */
+.alert {
+  padding: 15px;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
+.alert-success {
+  color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+}
+
+.alert-danger {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+}
+
 .container {
   max-width: 700px;
   margin: auto;
