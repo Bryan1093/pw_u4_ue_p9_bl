@@ -7,32 +7,62 @@ const API_URL = "http://localhost:8081/matricula/api/v1.0/estudiantes";
 // ======================
 
 const consultarTodos = async () => {
-  const response = await axios.get(API_URL);
+  const token = localStorage.getItem("token");
+  const response = await axios.get(API_URL, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return response.data;
 };
 
 const consultarPorID = async (id) => {
-  const response = await axios.get(`${API_URL}/${id}`);
+  const token = localStorage.getItem("token");
+  const response = await axios.get(`${API_URL}/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return response.data;
 };
 
 const guardar = async (body) => {
-  const response = await axios.post(API_URL, body);
+  const token = localStorage.getItem("token");
+  const response = await axios.post(API_URL, body, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return response.data;
 };
 
 const actualizar = async (id, body) => {
-  const response = await axios.put(`${API_URL}/${id}`, body);
+  const token = localStorage.getItem("token");
+  const response = await axios.put(`${API_URL}/${id}`, body, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return response.data;
 };
 
 const actualizarParcial = async (id, body) => {
-  const response = await axios.patch(`${API_URL}/${id}`, body);
+  const token = localStorage.getItem("token");
+  const response = await axios.patch(`${API_URL}/${id}`, body, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return response.data;
 };
 
 const eliminar = async (id) => {
-  const response = await axios.delete(`${API_URL}/${id}`);
+  const token = localStorage.getItem("token");
+  const response = await axios.delete(`${API_URL}/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return response.data;
 };
 
